@@ -257,9 +257,9 @@ class Processor(nn.Module):
 
         if self.flag[0] == 0:
             _, out_channels, height, width = scene_feature.size()
-            scene_projector = nn.Linear(out_channels * height * width, self.hidden_dim)
+            scene_projector = nn.Linear(out_channels * height * width, self.hidden_dim, device=self.device)
             scene_feature_flat = scene_feature.reshape(self.batch_size, out_channels * height * width)
-            scene_feature_projected = scene_projector(scene_feature_flat)
+            scene_feature_projected = scene_projector(scene_feature_flat).unsqueeze(0)
             if self.flag[1:3] == [0, 0]:
                 concatenated_tensor = torch.cat([trajectory_feature, state_feature, signal_feature,
                                                  scene_feature_projected], dim=-1)
