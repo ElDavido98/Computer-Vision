@@ -19,9 +19,9 @@ class ResNet(nn.Module):
         self.periodic_zeros_padding = PeriodicPadding2D(3, device=device)
         self.image_projection = nn.Conv2d(in_channels, hidden_channels, kernel_size=kernel_size, stride=stride, padding=padding).to(device)
         self.res_net_blocks = make_multilayer(
-            ResidualBlock,
-            hidden_channels,
-            hidden_channels,
+            block=ResidualBlock,
+            in_channels=hidden_channels,
+            out_channels=hidden_channels,
             num_blocks=num_blocks,
             change=1,
             device=device
