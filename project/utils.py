@@ -123,10 +123,10 @@ def agents_selection(
             if len(valid_idx) >= num_agents:
                 if torch.any(m) and k < num_agents:
                     indices = torch.nonzero(m).squeeze(1)
-                    filtered_past_ids[i, k, 0] = past_ids[i, valid_idx, :][indices[0, 0], indices[0, 1]]
-                    filtered_past_pos[i] = past_pos[i, valid_idx, :][indices[0, 0], indices[0, 1]]
-                    filtered_past_state[i] = past_state[i, valid_idx, :][indices[0, 0], indices[0, 1]]
-                    filtered_future_pos[i] = future_pos[i, valid_idx, :][indices[0, 0], indices[0, 1]]
+                    filtered_past_ids[i, k] = past_ids[i, valid_idx, :][indices[0, 0], :]
+                    filtered_past_pos[i, k] = past_pos[i, valid_idx, :][indices[0, 0], :]
+                    filtered_past_state[i, k] = past_state[i, valid_idx, :][indices[0, 0], :]
+                    filtered_future_pos[i, k] = future_pos[i, valid_idx, :][indices[0, 0], :]
                     flag += 1
             else:
                 return [], []
