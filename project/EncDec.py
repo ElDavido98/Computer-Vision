@@ -11,10 +11,11 @@ class Encoder(nn.Module):
             hidden_dim: int = 64,
             num_layers: int = 1,
             dropout: float = 0.0,
+            batch_norm_flag: bool = False,
             discriminator_flag: bool = False,
             device=torch.device("cpu")
     ):
-        super(Encoder, self).__init__()
+       super(Encoder, self).__init__()
 
         self.discriminator_flag = discriminator_flag
         self.device = device
@@ -30,9 +31,9 @@ class Encoder(nn.Module):
         self.spatial_embedding = make_multilayer(
             in_channels=in_features,
             out_channels=embedding_dim,
-            batch_norm_features=batch_size,
             dropout=dropout,
-            disc=discriminator_flag,
+            batch_norm_features=batch_size,
+            batch_norm=batch_norm_flag,
             device=device
         )
         # LSTM
@@ -41,7 +42,7 @@ class Encoder(nn.Module):
             hidden_size=hidden_dim,
             num_layers=num_layers,
             dropout=dropout_lstm,
-            device=self.device
+            device=device
         )
         batch_norm_features = None
         if self.discriminator_flag:
@@ -49,8 +50,10 @@ class Encoder(nn.Module):
                 batch_norm_features = batch_size
             self.output = make_multilayer(
                 in_out_dims=[hidden_dim, batch_size * hidden_dim, batch_size, 1],
-                batch_norm_features=batch_norm_features,
                 dropout=dropout,
+                batch_norm_features=batch_norm_features,
+                batch_norm=batch_norm_flag,
+                device=device
             )
             del self.output[-1][-2]
             self.output.append(nn.Sigmoid())
@@ -58,9 +61,11 @@ class Encoder(nn.Module):
             self.output = make_multilayer(
                 in_channels=hidden_dim,
                 out_channels=hidden_dim,
-                batch_norm_features=batch_size,
                 dropout=dropout,
-                num_blocks=int(num_layers // 2)
+                batch_norm_features=batch_size,
+                num_blocks=int(num_layers // 2),
+                batch_norm=batch_norm_flag,
+                device=device
             )
 
     def __call__(
@@ -105,6 +110,7 @@ class Decoder(nn.Module):
             num_paths: int = 4,
             mean: float = 0.0,
             std: float = 1.0,
+            batch_norm_flag: bool = False,
             device=torch.device("cpu")
     ):
         super(Decoder, self).__init__()
@@ -132,8 +138,10 @@ class Decoder(nn.Module):
         self.spatial_embedding = make_multilayer(
             in_channels=embedding_dim,
             out_channels=embedding_dim,
-            batch_norm_features=num_layers,
             dropout=dropout,
+            batch_norm_features=num_layers,
+            batch_norm=batch_norm_flag,
+            device=device
         )
         # LSTM
         self.lstm = nn.LSTM(
@@ -148,13 +156,17 @@ class Decoder(nn.Module):
         self.spatial_embedding_pred = make_multilayer(
             in_channels=hidden_dim,
             out_channels=embedding_dim,
-            batch_norm_features=num_layers,
             dropout=dropout,
+            batch_norm_features=num_layers,
+            batch_norm=batch_norm_flag,
+            device=device
         )
         # Output Layer
         self.output_layers = make_multilayer(
             in_out_dims=[hidden_dim, output_dim],
             dropout=dropout,
+            batch_norm=batch_norm_flag,
+            device=device
         )
         del self.output_layers[-1][-2]
         self.output_layers.append(nn.ReLU())
@@ -170,8 +182,10 @@ class Decoder(nn.Module):
         )
         self.h = make_multilayer(
             in_out_dims=[(hidden_dim + bottleneck_dim), bottleneck_dim, hidden_dim],
-            batch_norm_features=batch_size,
             dropout=dropout,
+            batch_norm_features=batch_size,
+            batch_norm=batch_norm_flag,
+            device=device
         )
 
     def __call__(
@@ -243,6 +257,7 @@ class PoolHiddenNet(nn.Module):
             hidden_dim: int = 64,
             bottleneck_dim: int = 1024,
             dropout: float = 0.0,
+            batch_norm_flag: bool = False,
             device=torch.device("cpu")
     ):
         super(PoolHiddenNet, self).__init__()
@@ -268,11 +283,13 @@ class PoolHiddenNet(nn.Module):
         self.spatial_embedding = make_multilayer(
             in_out_dims=[2, embedding_dim],
             dropout=dropout,
+            batch_norm=batch_norm_flag,
             device=device
         )
         self.mlp_pre_pool = make_multilayer(
             in_out_dims=mlp_pre_pool_dims,
             dropout=dropout,
+            batch_norm=batch_norm_flag,
             device=device
         )
 
