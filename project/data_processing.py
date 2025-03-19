@@ -193,8 +193,9 @@ class Processor(nn.Module):
 
         self.traj_pool_MLP = make_multilayer(
             in_out_dims=[hidden_dim + bottleneck_dim, 2 * (hidden_dim + bottleneck_dim), hidden_dim + bottleneck_dim],
+            dropout=dropout, 
             batch_norm_features=batch_size,
-            dropout=dropout,
+            device=device
         )
 
         if self.flag[0] == 0:
@@ -212,14 +213,32 @@ class Processor(nn.Module):
             )
             self.scene_projector = nn.Linear(out_channels * out_height * out_width, self.hidden_dim)
         if self.flag[1] == 0:
-            self.traffic_light_encoder = Encoder(in_features=1, embedding_dim=embedding_dim, batch_size=1,
-                                                 hidden_dim=hidden_dim, num_layers=num_layers, dropout=dropout,
-                                                 device=device)
-        self.trajectory_encoder = Encoder(in_features=2, embedding_dim=embedding_dim, hidden_dim=hidden_dim,
-                                          num_layers=num_layers, dropout=dropout, device=device)
+            self.traffic_light_encoder = Encoder(
+                in_features=1,
+                embedding_dim=embedding_dim,
+                batch_size=1,
+                hidden_dim=hidden_dim,
+                num_layers=num_layers,
+                dropout=dropout,
+                device=device
+            )
+        self.trajectory_encoder = Encoder(
+            in_features=2,
+            embedding_dim=embedding_dim,
+            hidden_dim=hidden_dim,
+            num_layers=num_layers,
+            dropout=dropout,
+            device=device
+        )
         if self.flag[2] == 0:
-            self.state_encoder = Encoder(in_features=4, embedding_dim=embedding_dim, hidden_dim=hidden_dim,
-                                         num_layers=num_layers, dropout=dropout, device=device)
+            self.state_encoder = Encoder(
+                in_features=4,
+                embedding_dim=embedding_dim,
+                hidden_dim=hidden_dim,
+                num_layers=num_layers,
+                dropout=dropout,
+                device=device
+                                        )
         self.pooling_module = PoolHiddenNet(
             embedding_dim=embedding_dim,
             num_layers=num_layers,
@@ -227,11 +246,14 @@ class Processor(nn.Module):
             hidden_dim=hidden_dim,
             bottleneck_dim=bottleneck_dim,
             dropout=dropout,
-            device=device)
+            device=device
+        )
         self.transformation = make_multilayer(
             in_out_dims=[concat_dim, 2 * concat_dim, concat_dim],
-            batch_norm_features=batch_size,
             dropout=dropout,
+            batch_norm_features=batch_size,
+            batch_norm=True,
+            device=device
         )
 
     def __call__(
